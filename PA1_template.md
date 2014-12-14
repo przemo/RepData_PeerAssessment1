@@ -57,7 +57,7 @@ plot(y=ts.aggregated$steps,x=ts.aggregated$interval, type="l", xlab="Interval", 
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
-The day of the average maximum steps was recorded on 835. There are still some missing observations present, hence for selected days no steps were recorded at all. The pattern clearly shows the increase of the steps taken at the beginning of the day, and decreasing steadily from morning (8-9am) to the end of a day, with specific peaks around noon (lunch time?), and around 4pm, 5pm, and 6pm (going home?, it may depend on the type a job). Generally the activity pattern are clearly visible. 
+There are still some missing observations present, hence for selected days no steps were recorded at all. The pattern clearly shows the increase of the steps taken at the beginning of the day, and decreasing steadily from morning (8-9am) to the end of a day, with specific peaks around noon (lunch time?), and around 4pm, 5pm, and 6pm (going home?, it may depend on the type a job). Generally the activity pattern are clearly visible. 
 
 
 
@@ -84,7 +84,7 @@ sum(is.na(data$steps))
 ## [1] 2304
 ```
 
-The imputation of the values to replace missing values of the number of steps may be performed on the daily median/mean value. But first lets see the distribution of the daily medians and means on the entire data-set.
+The imputation of the values to replace missing values of the number of steps may be performed on the daily median/mean value.
 
 
 ```r
@@ -105,11 +105,11 @@ sum(is.na(mean.aggregated))
 ## [1] 8
 ```
 
-Based on the daily aggregation, even if we remove missing variables, for specific dates there are still some missing observations for the entire day, hence this method may yield some issues if we use the daily aggregation as a base for the missing value imputation. Moreover, daily medians are always 0 in this data-set. Since each day pattern may look similar, it may be better to use *interval* id as an aggregation index. Considering skeweness of the steps distribution, median could a better choice for the imputation.
+Based on the daily aggregation, even if we remove missing variables, for specific dates there are still some missing observations for the entire day. This method may yield some issues if we use it as a base for the missing value imputation. Moreover, daily medians are always 0 in this data-set. Since each day pattern may look similar, it may be better to use *interval* id as an aggregation index. Considering skeweness (see below) of the steps distribution, median could a better choice for the imputation.
 
 
 ```r
-b <- with(data,tapply(steps,interval,median,na.rm=TRUE))
+b <- with(data,tapply(steps,interval,median,na.rm=TRUE)) # base for the imputation
 hist(b, col="skyblue2", main="Distribution of interval medians")
 ```
 
@@ -127,13 +127,13 @@ The imputation was made with the following code:
 
 
 ```r
-new_data <- data
-steps <- is.na(data$steps)
+new_data <- data 
+steps <- is.na(data$steps) # identifying missing observations
 dummy <- rep(NA,length(steps))
 for (i in 1:length(dummy)){ 
-  dummy[i] <- b[as.character(data[i,"interval"])]
+  dummy[i] <- b[as.character(data[i,"interval"])] # object 'b' is a base for the imputation
 }
-new_data[,"steps"] <- ifelse(steps,dummy,data$steps) 
+new_data[,"steps"] <- ifelse(steps,dummy,data$steps) # replacing missing observations
 
 new_daily_steps <- with(new_data,tapply(steps,list(dd),sum, na.rm=TRUE))
 hist(new_daily_steps,main="Histogram of steps per day (with imputed data)",col="skyblue2",breaks = 20, xlab="Number of steps")
